@@ -274,7 +274,7 @@ kill <PID>
 | [KasmVNC](https://github.com/kasmtech/KasmVNC) | ブラウザ完結型の画面配信 | GPL-2.0(TigerVNC系) |
 | KDE Plasma | デスクトップ環境 | GPL / LGPL(KDEプロジェクト標準) |
 | [Wine](https://www.winehq.org/) | Windowsアプリ互換レイヤー | LGPL-2.1 |
-| [FFmpeg](https://ffmpeg.org/) | 音声のエンコード・配信 | GPL(Ubuntu配布ビルド) |
+| [FFmpeg](https://ffmpeg.org/) | 音声のエンコード・配信 | GPL(Ubuntu標準ビルドは`--enable-gpl`が有効なため。ビルド構成によりLGPLの場合もある) |
 | [fcitx5](https://fcitx-im.org/wiki/Fcitx_5) | 日本語入力フレームワーク | LGPL-2.1 |
 | [Mozc](https://github.com/google/mozc) | 日本語入力エンジン | BSD-3-Clause系 |
 | Ubuntu | ベースOS | 各パッケージごとに異なる(主にGPL系) |
@@ -283,8 +283,9 @@ kill <PID>
 > プロプライエタリ(独自ライセンス)ソフトウェアであり、オープンソースではありません。
 > このガイドはRoblox StudioをWine経由で動かせたという実験結果を共有するものであり、
 > 利用に際してはRobloxの利用規約(Terms of Use)をご自身で確認し、自己責任で行ってください。
-> ゲームプレイ用のRoblox Player(Hyperionアンチチート搭載)は、Wine環境を検知してブロックするため
-> 動作しないことを確認しています。
+> なお、ゲームプレイ用のRoblox Player(Hyperionアンチチート搭載)については、
+> このプロジェクトの環境で実際に動作を試したところWine環境を検知してブロックされ、
+> 起動できないことを確認しました(Roblox社の公式声明ではなく、実地での確認結果です)。
 
 ---
 
