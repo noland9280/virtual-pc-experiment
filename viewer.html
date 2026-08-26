@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>仮想PC(映像+音声)</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #000; overflow: hidden; }
+  #screen { position: fixed; top: 32px; left: 0; width: 100%; height: calc(100% - 32px); border: none; }
+  #audiobar {
+    position: fixed; top: 0; left: 0; right: 0; height: 32px;
+    background: rgba(20,20,20,0.9); color: #fff; font-family: sans-serif;
+    padding: 0 10px; font-size: 12px; z-index: 10; display: flex; align-items: center; gap: 8px;
+  }
+  #audiobar input { width: 100px; }
+</style>
+</head>
+<body>
+  <div id="audiobar">
+    🔊
+    <audio id="a" autoplay></audio>
+    <button onclick="document.getElementById('a').play()">▶</button>
+    <input type="range" min="0" max="1" step="0.05" value="1"
+      oninput="document.getElementById('a').volume=this.value">
+  </div>
+  <iframe id="screen"></iframe>
+  <script>
+    // Derives screen (8080) and audio (8998) URLs from this page's own
+    // hostname instead of hardcoding a specific Codespace name, so this file
+    // works unmodified across any Codespace instance. This page is expected
+    // to be served on port 8999. Override with ?screen_port=&audio_port= if
+    // your setup differs.
+    const params = new URLSearchParams(window.location.search);
+    const screenPort = params.get('screen_port') || '8080';
+    const audioPort = params.get('audio_port') || '8998';
+    const proto = window.location.protocol;
+    const screenHost = window.location.hostname.replace(/-\d+(?=\.)/, '-' + screenPort);
+    const audioHost = window.location.hostname.replace(/-\d+(?=\.)/, '-' + audioPort);
+    document.getElementById('screen').src = `${proto}//${screenHost}/`;
+    document.getElementById('a').src = `${proto}//${audioHost}/stream.mp3`;
+  </script>
+</body>
+</html>
