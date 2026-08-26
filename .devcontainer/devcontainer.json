@@ -1,0 +1,80 @@
+{
+  "name": "Virtual PC (KasmVNC + KDE Plasma)",
+  // Pinned to a persistent tag instead of :latest so Codespaces rebuilds are
+  // reproducible. Bump deliberately: see
+  // https://github.com/selkies-project/docker-selkies-egl-desktop/pkgs/container/nvidia-egl-desktop
+  "image": "ghcr.io/selkies-project/nvidia-egl-desktop:24.04-20251107145813",
+
+  // IMPORTANT: keep the image's own startup process running (Xorg + KDE + KasmVNC)
+  // instead of letting the devcontainer tooling replace it with a sleep loop.
+  "overrideCommand": false,
+
+  "runArgs": ["--shm-size=4g"],
+
+  "containerEnv": {
+    "TZ": "Asia/Tokyo",
+    // Lowered from 1920x1080 to cut the pixel count llvmpipe (software GL,
+    // no GPU available) has to render for Roblox Studio's viewport - this
+    // was the main practical lever left after already maxing out the
+    // Codespaces machine type (4 cores is the ceiling on this plan).
+    "DISPLAY_SIZEW": "1280",
+    "DISPLAY_SIZEH": "720",
+    "DISPLAY_REFRESH": "60",
+    "DISPLAY_DPI": "96",
+    "DISPLAY_CDEPTH": "24",
+    // Explicitly tell llvmpipe (Mesa's software OpenGL rasterizer) to use
+    // all 4 cores. Left unset, it auto-detects but doesn't always saturate
+    // every core in a container; being explicit here squeezes out whatever
+    // throughput is available.
+    "LP_NUM_THREADS": "4",
+    // Set a Codespaces secret named VPC_PASSWORD (github.com/settings/codespaces)
+    // to override this default. Falls back to "changeme123" if not set.
+    "PASSWD": "${localEnv:VPC_PASSWORD:changeme123}",
+    // Boot the desktop session directly in Japanese (previously the session
+    // started in English before the language pack finished installing).
+    "LANG": "ja_JP.UTF-8",
+    "LC_ALL": "ja_JP.UTF-8",
+    "LANGUAGE": "ja_JP:ja",
+    // Selkies' WebRTC media stream needs raw TCP/UDP to a TURN server, which
+    // Codespaces' HTTPS-only port forwarding cannot carry. KasmVNC instead
+    // streams everything as a plain WebSocket over the same forwarded HTTP(S)
+    // port, so it works reliably in Codespaces. Trade-off: no audio.
+    "KASMVNC_ENABLE": "true",
+    // kasmxproxy (the process that grabs the composited X screen for
+    // KasmVNC) has been segfaulting after a few seconds. Forcing KWin onto
+    // software (QPainter) compositing avoids the GPU-less OpenGL compositing
+    // path that seems to be triggering it, and pinning to a single render
+    // thread removes a possible source of thread-race crashes.
+    "KWIN_COMPOSE": "Q",
+    "KASMVNC_THREADS": "1",
+    // Tell GTK/Qt apps to route keyboard input through fcitx5 (for Mozc/Japanese input)
+    "GTK_IM_MODULE": "fcitx",
+    "QT_IM_MODULE": "fcitx",
+    "XMODIFIERS": "@im=fcitx",
+    "SDL_IM_MODULE": "fcitx",
+    // Wine's default prefix (~/.wine) lives outside /workspaces and is wiped
+    // on every rebuild. Pointing it here means anything installed via Wine
+    // (e.g. Roblox Studio) survives rebuilds without reinstalling.
+    "WINEPREFIX": "/workspaces/literate-octo-fortnight/.wineprefix"
+  },
+
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Virtual PC Desktop (KasmVNC)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  // The actual setup logic lives in .devcontainer/setup.sh (a normal shell
+  // script, edited safely without JSON-escaping risk). It installs Japanese
+  // IME/locale, Wine, and symlinks desktop customization (wallpapers, icons,
+  // cursor themes) into /workspaces so they survive rebuilds.
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Simple health check: waits for the desktop's web port to come up after
+  // (re)start and writes a pass/fail line to ~/vpc-healthcheck.log so a
+  // failed boot (e.g. kasmxproxy crash-looping) is visible without having
+  // to hunt through supervisor logs first.
+  "postStartCommand": "bash -c 'echo \"[$(date)] health check starting\" >> ~/vpc-healthcheck.log; ok=0; for i in $(seq 1 20); do code=$(curl -sk -o /dev/null -w \"%{http_code}\" https://localhost:8080/ 2>/dev/null); if [ -n \"$code\" ] && [ \"$code\" != \"000\" ]; then ok=1; break; fi; sleep 3; done; if [ \"$ok\" = \"1\" ]; then echo \"[$(date)] OK: port 8080 responding (HTTP $code)\" >> ~/vpc-healthcheck.log; else echo \"[$(date)] FAIL: port 8080 not responding after 60s, check: sudo supervisorctl status\" >> ~/vpc-healthcheck.log; fi' || true"
+}
