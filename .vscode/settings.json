@@ -1,0 +1,11 @@
+{
+  "search.followSymlinks": false,
+  "files.watcherExclude": {
+    "**/.wineprefix/**": true,
+    "**/.desktop-persist/**": true
+  },
+  "search.exclude": {
+    "**/.wineprefix/**": true,
+    "**/.desktop-persist/**": true
+  }
+}
