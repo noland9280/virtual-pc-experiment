@@ -1,5 +1,7 @@
 # Virtual PC Experiment
 
+<img width="1365" height="767" alt="Screenshot 2026-07-28 17 04 19" src="https://github.com/user-attachments/assets/01770d54-a13c-4533-8b4c-16d8ac3097ce" />
+
 **ブラウザだけで完結する「Ubuntu仮想PC」を、GPU無し・Docker無しの環境から作る実験記録**
 
 GitHub Codespaces(無料枠)の上に、KDE Plasmaデスクトップをフルに動かし、
